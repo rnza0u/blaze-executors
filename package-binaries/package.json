@@ -1,0 +1,28 @@
+{
+  "name": "package-binaries",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build:blaze": "blaze run package-binaries:build",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@blaze-repo/node-devkit": "0.2.10",
+    "executors-common": "file:../node-common",
+    "semver": "^7.6.2",
+    "toml": "^3.0.0",
+    "zod": "^3.23.8"
+  },
+  "blaze": {
+    "version": "1",
+    "type": "executor",
+    "path": "dist/main.js",
+    "build": "build:blaze",
+    "install": false
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.12",
+    "@types/semver": "^7.5.8",
+    "typescript": "^5.4.5"
+  }
+}

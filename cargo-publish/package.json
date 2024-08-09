@@ -1,0 +1,30 @@
+{
+  "name": "cargo-publish",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "publish package to crates.io in a stateless way",
+  "scripts": {
+    "build:blaze": "blaze run cargo-publish:build",
+    "build": "tsc"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "@blaze-repo/node-devkit": "0.2.10",
+    "semver": "^7.6.2",
+    "toml": "^3.0.0",
+    "zod": "^3.23.8",
+    "executors-common": "file:../node-common"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.2",
+    "@types/semver": "^7.5.8",
+    "typescript": "^5.4.5"
+  },
+  "blaze": {
+    "version": "1",
+    "type": "executor",
+    "path": "dist/main.js",
+    "install": false,
+    "build": "build:blaze"
+  }
+}

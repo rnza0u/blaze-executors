@@ -1,0 +1,14 @@
+{
+  "name": "executors-common",
+  "version": "1.0.0",
+  "description": "utilities for node executors",
+  "type": "module",
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.2",
+    "typescript": "^5.4.5"
+  }
+}

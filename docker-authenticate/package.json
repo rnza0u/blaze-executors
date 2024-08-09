@@ -1,0 +1,27 @@
+{
+  "name": "docker-authenticate",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "authenticate to a Docker registry in a stateless way",
+  "scripts": {
+    "build:blaze": "blaze run docker-authenticate:build",
+    "build": "tsc"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "@blaze-repo/node-devkit": "0.2.10",
+    "zod": "^3.23.8",
+    "executors-common": "file:../node-common"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.2",
+    "typescript": "^5.4.5"
+  },
+  "blaze": {
+    "version": "1",
+    "type": "executor",
+    "path": "dist/main.js",
+    "install": false,
+    "build": "build:blaze"
+  }
+}

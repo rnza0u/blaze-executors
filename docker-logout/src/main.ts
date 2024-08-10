@@ -18,7 +18,7 @@ const executor: Executor = async (context, userOptions) => {
     const env = await envSchema.parseAsync(process.env)
     
     try {
-        const json = await readFile(join(env['HOME'], '.docker/config.json'))
+        const json = await readFile(join(env['HOME'], '.docker/config.json'), 'utf-8')
         const { auths = {} } = JSON.parse(json)
         if (!(registry in auths)){
             context.logger.warn(`already logged out from ${registry}`)
@@ -26,7 +26,7 @@ const executor: Executor = async (context, userOptions) => {
         }
 
     } catch (err){
-        if (err.code !== 'ENOENT')
+        if (err instanceof Error && (err as NodeJS.ErrnoException).code !== 'ENOENT')
             throw err
     }
 

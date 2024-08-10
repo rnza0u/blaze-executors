@@ -1,2 +1,3 @@
 # blaze-executors
-A collection of Blaze executors
+
+A collection of Blaze executors.

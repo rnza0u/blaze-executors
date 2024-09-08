@@ -5,12 +5,10 @@
     projects: {
         [name]: name for name in [
             'cargo-publish',
-            'cargo-version-check',
             'docker-authenticate',
             'docker-logout',
             'node-common',
             'npm-publish',
-            'npm-version-check',
             'package-binaries',
             'push-tags'
         ]

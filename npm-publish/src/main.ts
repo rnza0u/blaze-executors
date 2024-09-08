@@ -15,12 +15,22 @@ function parseVersion(version: string): semver.SemVer {
 const versionSchema = z.string().transform(v => parseVersion(v))
 
 const optionsSchema = z.object({
-    dryRun: z.boolean().default(false)
+    releaseVersion: versionSchema,
+    linkedDependencies: z.object({
+        runtime: z.set(z.string().min(1)).default(new Set()),
+        dev: z.set(z.string().min(1)).default(new Set()),
+        optional: z.set(z.string().min(1)).default(new Set()),
+        peer: z.set(z.string().min(1)).default(new Set())
+    }).default({})
 })
 
 const packageJsonSchema = z.object({
     name: z.string().min(1),
-    version: versionSchema
+    version: versionSchema,
+    dependencies: z.record(z.string().min(1)).default({}),
+    devDependencies: z.record(z.string().min(1)).default({}),
+    optionalDependencies: z.record(z.string().min(1)).default({}),
+    peerDependencies: z.record(z.string().min(1)).default({})
 })
 
 const packageMetadataSchema = z.object({
@@ -38,15 +48,15 @@ const packageMetadataSchema = z.object({
 const executor: Executor = async (context, userOptions) => {
 
     const options = await optionsSchema.parseAsync(userOptions)
-    const path = join(context.project.root, 'package.json')
-    const packageJson = await packageJsonSchema.parseAsync(JSON.parse(await readFile(path, 'utf-8')))
+    const packageJsonPath = join(context.project.root, 'package.json')
+    const packageJson = await packageJsonSchema.parseAsync(JSON.parse(await readFile(packageJsonPath, 'utf-8')))
 
     const { stdout } = await shell(
-        'git', 
-        ['status', '--porcelain'], 
+        'git',
+        ['status', '--porcelain'],
         { cwd: context.workspace.root }
     )
-    
+
     if (stdout.length > 0)
         throw Error('worktree is not clean, aborting publish')
 
@@ -55,19 +65,97 @@ const executor: Executor = async (context, userOptions) => {
         return
     }
 
+    for (const { key, dependencies, installFlag } of [
+        {
+            key: 'dependencies' as const,
+            installFlag: '--save',
+            dependencies: options.linkedDependencies.runtime
+        },
+        {
+            key: 'optionalDependencies' as const,
+            installFlag: '--save-optional',
+            dependencies: options.linkedDependencies.optional
+        },
+        {
+            key: 'devDependencies' as const,
+            installFlag: '--save-dev',
+            dependencies: options.linkedDependencies.dev
+        },
+        {
+            key: 'peerDependencies' as const,
+            installFlag: '--save-peer',
+            dependencies: options.linkedDependencies.peer
+        }
+    ]) {
+        if (dependencies.size === 0)
+            continue
+
+        const packageDependencies = packageJson[key]
+
+        if (!packageDependencies)
+            throw Error(`no "${key}" declared at ${packageJsonPath} and ${dependencies.size} project(s) should be version linked in that section`)
+
+        for (const dependency of dependencies){
+
+            const packageDependency = packageDependencies[dependency]
+
+            if (!packageDependency)
+                throw Error(`package ${dependency} does not exist at ${packageJsonPath} at the "${key}" key`)
+
+            await shell(
+                'npm',
+                [
+                    'install',
+                    installFlag,
+                    `${dependency}@${options.releaseVersion}`
+                ],
+                {
+                    cwd: context.project.root
+                }
+            )
+        }
+    }
+
+    await shell(
+        'npm',
+        ['version', options.releaseVersion.toString()],
+        {
+            cwd: context.project.root
+        }
+    )
+
+    const projectRelativePath = context.workspace.projects[context.project.name].path
+
+    await shell(
+        'git',
+        [
+            'add',
+            join(projectRelativePath, 'package.json'),
+            join(projectRelativePath, 'package-lock.json')
+        ],
+        {
+            cwd: context.workspace.root
+        }
+    )
+
+    await shell(
+        'git',
+        [
+            'commit',
+            '-m',
+            `release: bump package version to ${options.releaseVersion} and linked dependencies versions for ${packageJson.name} (${context.project.name})`
+        ]
+    )
+
     await shell(
         'npm',
         [
             'publish',
             '--access',
-            'public',
-            ...(options.dryRun ? ['--dry-run'] : [])
+            'public'
         ],
         { cwd: context.project.root }
     )
-
-    if (options.dryRun) 
-        return
 
     context.logger.info(`${context.project.name} was published, waiting for it be available...`)
 
@@ -94,11 +182,11 @@ async function versionExists(name: string, version: SemVer): Promise<boolean> {
 
             if (!existing)
                 return false
-            
+
             const tarballResponse = await fetch(existing.dist.tarball)
             tarballResponse.body?.cancel()
 
-            switch (tarballResponse.status){
+            switch (tarballResponse.status) {
                 case 200:
                     return true
                 case 404:

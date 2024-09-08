@@ -9,7 +9,7 @@
   },
   "license": "ISC",
   "dependencies": {
-    "@blaze-repo/node-devkit": "0.2.10",
+    "@blaze-repo/node-devkit": "^0.2.13",
     "zod": "^3.23.8",
     "executors-common": "file:../node-common"
   },

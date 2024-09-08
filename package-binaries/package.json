@@ -7,7 +7,7 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@blaze-repo/node-devkit": "0.2.10",
+    "@blaze-repo/node-devkit": "^0.2.13",
     "executors-common": "file:../node-common",
     "semver": "^7.6.2",
     "toml": "^3.0.0",

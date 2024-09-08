@@ -13,12 +13,14 @@ const versionSchema = z.string().transform(v => {
     return version
 })
 
+const stringSet = z.array(z.string().min(1)).default([]).transform(a => new Set(a))
+
 const optionsSchema = z.object({
     releaseVersion: versionSchema,
     linkedDependencies: z.object({
-        runtime: z.set(z.string().min(1)).default(new Set()),
-        build: z.set(z.string().min(1)).default(new Set()),
-        dev: z.set(z.string().min(1)).default(new Set())
+        runtime: stringSet,
+        build: stringSet,
+        dev: stringSet
     }).default({})
 })
 

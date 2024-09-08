@@ -14,13 +14,15 @@ function parseVersion(version: string): semver.SemVer {
 
 const versionSchema = z.string().transform(v => parseVersion(v))
 
+const stringSet = z.array(z.string().min(1)).default([]).transform(a => new Set(a))
+
 const optionsSchema = z.object({
     releaseVersion: versionSchema,
     linkedDependencies: z.object({
-        runtime: z.set(z.string().min(1)).default(new Set()),
-        dev: z.set(z.string().min(1)).default(new Set()),
-        optional: z.set(z.string().min(1)).default(new Set()),
-        peer: z.set(z.string().min(1)).default(new Set())
+        runtime: stringSet,
+        dev: stringSet,
+        optional: stringSet,
+        peer: stringSet
     }).default({})
 })
 

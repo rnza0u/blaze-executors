@@ -3,17 +3,16 @@ import { shell } from 'executors-common'
 import { z } from 'zod'
 
 const optionsSchema = z.object({
-    dryRun: z.boolean().default(false),
+    pushRemote: z.string().min(1).optional(),
     tags: z.array(z.string().min(1)).transform(a => new Set(a))
 })
 
 const executor: Executor = async (context, options) => {
 
-    const { tags, dryRun } = await optionsSchema.parseAsync(options)
+    const { tags, pushRemote } = await optionsSchema.parseAsync(options)
 
     if (tags.size === 0) {
         context.logger.warn('no tags were provided')
-        return
     }
 
     const { stdout } = await shell(
@@ -24,11 +23,6 @@ const executor: Executor = async (context, options) => {
 
     if (stdout.length > 0)
         throw Error('worktree is not clean, aborting creating tags')
-
-    if (dryRun) {
-        context.logger.warn(`aborting because dry run. would have created tags: ${JSON.stringify([...tags])}`)
-        return
-    }
 
     for (const tag of tags) {
         context.logger.info(`creating tag ${tag}`)
@@ -47,37 +41,40 @@ const executor: Executor = async (context, options) => {
 
     context.logger.info('setting remote before pushing tags')
 
+    if (pushRemote){
+        await shell(
+            'git',
+            [
+                'remote',
+                'set-url',
+                '--push',
+                'origin',
+                pushRemote
+            ]
+        )
+    }
+
+    context.logger.info(`pushing changes to remote`)
     await shell(
         'git',
-        [
-            'remote',
-            'set-url',
-            'origin',
-            'git@github.com:rnza0u/main.git'
-        ]
+        ['push'],
+        {
+            cwd: context.workspace.root
+        }
     )
 
-    await shell(
-        'git',
-        [
-            'remote',
-            'set-url',
-            '--push',
-            'origin',
-            'git@github.com:rnza0u/main.git'
-        ]
-    )
-
-    context.logger.info(`pushing ${tags.size} tags`)
-    await shell(
-        'git',
-        [
-            'push',
-            'origin',
-            '--tags'
-        ],
-        { cwd: context.workspace.root }
-    )
+    if (tags.size > 0){
+        context.logger.info(`pushing ${tags.size} tags`)
+        await shell(
+            'git',
+            [
+                'push',
+                'origin',
+                '--tags'
+            ],
+            { cwd: context.workspace.root }
+        )
+    }
 }
 
 export default executor

@@ -62,10 +62,8 @@ const executor: Executor = async (context, userOptions) => {
     if (stdout.length > 0)
         throw Error('worktree is not clean, aborting publish')
 
-    if (await versionExists(packageJson.name, packageJson.version)) {
-        context.logger.warn(`version ${packageJson.version} is already published.`)
-        return
-    }
+    let packageBump = false
+    let dependencyBumps = 0
 
     for (const { key, dependencies, installFlag } of [
         {
@@ -104,6 +102,11 @@ const executor: Executor = async (context, userOptions) => {
             if (!packageDependency)
                 throw Error(`package ${dependency} does not exist at ${packageJsonPath} at the "${key}" key`)
 
+            if (packageDependency === options.releaseVersion.toString()){
+                context.logger.warn(`"${key}.${packageDependency}" is already at the right version ${options.releaseVersion}`)
+                continue
+            }
+
             await shell(
                 'npm',
                 [
@@ -115,39 +118,53 @@ const executor: Executor = async (context, userOptions) => {
                     cwd: context.project.root
                 }
             )
+
+            dependencyBumps++
         }
     }
 
-    await shell(
-        'npm',
-        ['version', options.releaseVersion.toString()],
-        {
-            cwd: context.project.root
-        }
-    )
+    if (packageJson.version.compare(options.releaseVersion) !== 0){
+        await shell(
+            'npm',
+            ['version', options.releaseVersion.toString()],
+            {
+                cwd: context.project.root
+            }
+        )
+        packageBump = true
+    } else {
+        context.logger.warn(`package ${packageJson.name} is already at the release version ${options.releaseVersion}, not bumping...`)
+    }
 
     const projectRelativePath = context.workspace.projects[context.project.name].path
 
-    await shell(
-        'git',
-        [
-            'add',
-            join(projectRelativePath, 'package.json'),
-            join(projectRelativePath, 'package-lock.json')
-        ],
-        {
-            cwd: context.workspace.root
-        }
-    )
+    if (packageBump || dependencyBumps > 0){
+        await shell(
+            'git',
+            [
+                'add',
+                join(projectRelativePath, 'package.json'),
+                join(projectRelativePath, 'package-lock.json')
+            ],
+            {
+                cwd: context.workspace.root
+            }
+        )
+    
+        await shell(
+            'git',
+            [
+                'commit',
+                '-m',
+                `release: bump package version to ${options.releaseVersion} and ${dependencyBumps} linked dependencies versions for ${packageJson.name}`
+            ]
+        )
+    }
 
-    await shell(
-        'git',
-        [
-            'commit',
-            '-m',
-            `release: bump package version to ${options.releaseVersion} and linked dependencies versions for ${packageJson.name} (${context.project.name})`
-        ]
-    )
+    if (await versionExists(packageJson.name, packageJson.version)) {
+        context.logger.warn(`version ${packageJson.version} is already published, aborting publish...`)
+        return
+    }
 
     await shell(
         'npm',

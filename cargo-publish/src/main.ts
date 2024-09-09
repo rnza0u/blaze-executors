@@ -78,11 +78,8 @@ const executor: Executor = async (context, userOptions) => {
     if (stdout.length > 0)
         throw Error('worktree is not clean, aborting publish')
 
-
-    if (await versionExists(manifest.package.name, manifest.package.version)) {
-        context.logger.warn(`${context.project.name} is already published in version ${manifest.package.version}`)
-        return
-    }
+    let crateBump = false
+    let dependencyBumps = 0
 
     // bump linked dependencies versions
     for (const { key, dependencies, addFlag } of [
@@ -116,6 +113,14 @@ const executor: Executor = async (context, userOptions) => {
             if (!manifestDependency)
                 throw Error(`"${key}.${dependency}" could not be found and should be version linked`)
 
+            if (typeof manifestDependency.version !== 'string')
+                throw Error(`"${key}.${dependency}" has no version`)
+            
+            if (manifestDependency.version === options.releaseVersion.toString()){
+                context.logger.warn(`"${key}.${dependency}" is already at the release version ${options.releaseVersion}`)
+                continue
+            }
+
             // see https://github.com/rust-lang/cargo/issues/14510 for why we use this workaround
             const path = manifestDependency['path']
 
@@ -144,40 +149,54 @@ const executor: Executor = async (context, userOptions) => {
                     }
                 )
             }
+
+            dependencyBumps++
         }
     }
 
-    await shell(
-        'cargo',
-        [
-            'bump',
-            options.releaseVersion.toString()
-        ],
-        {
-            cwd: context.project.root
-        }
-    )
+    if (manifest.package.version.compare(options.releaseVersion) !== 0){
+        await shell(
+            'cargo',
+            [
+                'bump',
+                options.releaseVersion.toString()
+            ],
+            {
+                cwd: context.project.root
+            }
+        )
+        crateBump = true
+    } else {
+        context.logger.warn(`crate ${manifest.package.name} is already at the release version ${options.releaseVersion}, not bumping...`)
+    }
 
-    await shell(
-        'git',
-        [
-            'add',
-            join(context.workspace.projects[context.project.name].path, 'Cargo.toml'),
-            join(context.workspace.projects[context.project.name].path, 'Cargo.lock')
-        ],
-        {
-            cwd: context.workspace.root
-        }
-    )
+    if (crateBump || dependencyBumps > 0){
+        await shell(
+            'git',
+            [
+                'add',
+                join(context.workspace.projects[context.project.name].path, 'Cargo.toml'),
+                join(context.workspace.projects[context.project.name].path, 'Cargo.lock')
+            ],
+            {
+                cwd: context.workspace.root
+            }
+        )
+    
+        await shell(
+            'git',
+            [
+                'commit',
+                '-m',
+                `release: bump package version to ${options.releaseVersion} and ${dependencyBumps} linked dependencie(s) versions for ${manifest.package.name} (${context.project.name})`
+            ]
+        )
+    }
 
-    await shell(
-        'git',
-        [
-            'commit',
-            '-m',
-            `release: bump package version to ${options.releaseVersion} and linked dependencies versions for ${manifest.package.name} (${context.project.name})`
-        ]
-    )
+    if (await versionExists(manifest.package.name, manifest.package.version)) {
+        context.logger.warn(`${context.project.name} is already published in version ${manifest.package.version}, not publishing...`)
+        return
+    }
 
     await shell(
         'cargo',

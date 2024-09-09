@@ -57,7 +57,7 @@ const executor: Executor = async (context, options) => {
     context.logger.info(`pushing changes to remote`)
     await shell(
         'git',
-        ['push'],
+        ['push', '--set-upstream'],
         {
             cwd: context.workspace.root
         }

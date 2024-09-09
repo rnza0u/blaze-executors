@@ -10,11 +10,14 @@
   "license": "ISC",
   "dependencies": {
     "@blaze-repo/node-devkit": "^0.2.13",
-    "zod": "^3.23.8",
-    "executors-common": "file:../node-common"
+    "executors-common": "file:../node-common",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/node": "^20.14.2",
+    "eslint": "^9.10.0",
+    "eslint-config-rnz-main": "^1.0.5",
+    "eslint-config-rnz-node": "^1.0.5",
     "typescript": "^5.4.5"
   },
   "blaze": {

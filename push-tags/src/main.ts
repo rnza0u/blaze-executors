@@ -12,9 +12,8 @@ const executor: Executor = async (context, options) => {
 
     const { tags, pushRemote, branch } = await optionsSchema.parseAsync(options)
 
-    if (tags.size === 0) {
+    if (tags.size === 0)
         context.logger.warn('no tags were provided')
-    }
 
     const { stdout } = await shell(
         'git',
@@ -42,7 +41,7 @@ const executor: Executor = async (context, options) => {
 
     context.logger.info('setting remote before pushing tags')
 
-    if (pushRemote){
+    if (pushRemote)
         await shell(
             'git',
             [
@@ -53,9 +52,8 @@ const executor: Executor = async (context, options) => {
                 pushRemote
             ]
         )
-    }
 
-    context.logger.info(`pushing changes to remote`)
+    context.logger.info('pushing changes to remote')
     await shell(
         'git',
         ['push', '--set-upstream', 'origin', branch],

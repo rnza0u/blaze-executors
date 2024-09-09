@@ -23,6 +23,9 @@
   "devDependencies": {
     "@types/node": "^20.12.12",
     "@types/semver": "^7.5.8",
+    "eslint": "^9.10.0",
+    "eslint-config-rnz-main": "^1.0.5",
+    "eslint-config-rnz-node": "^1.0.5",
     "typescript": "^5.4.5"
   }
 }

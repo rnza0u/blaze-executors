@@ -20,37 +20,34 @@ local blaze = std.extVar('blaze');
             },
             dependencies: ['node-common:build']
         },
-        source: {
-            cache: {
-                invalidateWhen: {
-                    inputChanges: [
-                        'src/**', 
-                        'tsconfig.json'
-                    ]
-                }
-            },
-            dependencies: ['install']
-        },
         lint: {
             executor: 'std:commands',
             options: {
                 commands: [
                     {
                         program: './node_modules/.bin/eslint',
-                        arguments: [
-                            '--config',
-                            './node_modules/rnz-eslint-config/eslint.config.js',
-                        ] + (if blaze.vars.lint.fix then ['--fix'] else [])
-                        + [blaze.project.root],
-                        environment: {
-                            ESLINT_USE_FLAT_CONFIG: 'true'
-                        }
+                        arguments: (if blaze.vars.lint.fix then ['--fix'] else [])
+                            + [blaze.project.root]
                     }
                 ]
             },
             dependencies: [
                 'source'
             ]
+        },
+        source: {
+            cache: {
+                invalidateWhen: {
+                    inputChanges: [
+                        'src/**', 
+                        'tsconfig.json'
+                    ],
+                    outputChanges: [
+                        'dist/**'
+                    ]
+                }
+            },
+            dependencies: ['install']
         },
         build: {
             executor: 'std:commands',

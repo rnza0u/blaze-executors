@@ -4,4 +4,7 @@
         these variables will be merged into .blaze/variables.jsonnet `vars` key.
         this file is not versioned through Git.
     */
+    lint: {
+        fix: true
+    }
 }

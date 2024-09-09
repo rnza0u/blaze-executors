@@ -40,14 +40,8 @@ local blaze = std.extVar('blaze');
                 commands: [
                     {
                         program: './node_modules/.bin/eslint',
-                        arguments: [
-                            '--config',
-                            './node_modules/rnz-eslint-config/eslint.config.js',
-                        ] + (if blaze.vars.lint.fix then ['--fix'] else [])
-                        + [blaze.project.root],
-                        environment: {
-                            ESLINT_USE_FLAT_CONFIG: 'true'
-                        }
+                        arguments: (if blaze.vars.lint.fix then ['--fix'] else [])
+                            + [blaze.project.root]
                     }
                 ]
             },

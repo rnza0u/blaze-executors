@@ -9,6 +9,9 @@
   },
   "devDependencies": {
     "@types/node": "^20.14.2",
+    "eslint": "^9.10.0",
+    "eslint-config-rnz-main": "^1.0.5",
+    "eslint-config-rnz-node": "^1.0.5",
     "typescript": "^5.4.5"
   }
 }

@@ -156,7 +156,7 @@ const executor: Executor = async (context, userOptions) => {
             [
                 'commit',
                 '-m',
-                `release: bump package version to ${options.releaseVersion} and ${dependencyBumps} linked dependencies versions for ${packageJson.name}`
+                `release: bump package version to ${options.releaseVersion} and ${dependencyBumps} linked dependencies version(s) for ${packageJson.name}`
             ]
         )
     }

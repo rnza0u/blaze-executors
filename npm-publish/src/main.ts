@@ -161,8 +161,8 @@ const executor: Executor = async (context, userOptions) => {
         )
     }
 
-    if (await versionExists(packageJson.name, packageJson.version)) {
-        context.logger.warn(`version ${packageJson.version} is already published, aborting publish...`)
+    if (await versionExists(packageJson.name, options.releaseVersion)) {
+        context.logger.warn(`version ${options.releaseVersion} is already published, aborting publish...`)
         return
     }
 
@@ -178,10 +178,10 @@ const executor: Executor = async (context, userOptions) => {
 
     context.logger.info(`${context.project.name} was published, waiting for it be available...`)
 
-    while (!(await versionExists(packageJson.name, packageJson.version)))
+    while (!(await versionExists(packageJson.name, options.releaseVersion)))
         await wait(60_000)
 
-    context.logger.info(`${context.project.name} is published and available in version ${packageJson.version}`)
+    context.logger.info(`${context.project.name} is published and available in version ${options.releaseVersion}`)
 }
 
 async function versionExists(name: string, version: SemVer): Promise<boolean> {

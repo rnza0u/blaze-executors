@@ -193,8 +193,8 @@ const executor: Executor = async (context, userOptions) => {
         )
     }
 
-    if (await versionExists(manifest.package.name, manifest.package.version)) {
-        context.logger.warn(`${context.project.name} is already published in version ${manifest.package.version}, not publishing...`)
+    if (await versionExists(manifest.package.name, options.releaseVersion)) {
+        context.logger.warn(`${context.project.name} is already published in version ${options.releaseVersion}, not publishing...`)
         return
     }
 
@@ -213,7 +213,7 @@ const executor: Executor = async (context, userOptions) => {
 
     context.logger.info(`${manifest.package.name} was published, waiting for package to be available...`)
 
-    while (!(await versionExists(manifest.package.name, manifest.package.version)))
+    while (!(await versionExists(manifest.package.name, options.releaseVersion)))
         await wait(60_000)
 
     context.logger.info(`${manifest.package.name} is available in version ${manifest.package.version}`)

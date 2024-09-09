@@ -26,6 +26,9 @@ local blaze = std.extVar('blaze');
                     inputChanges: [
                         'src/**', 
                         'tsconfig.json'
+                    ],
+                    outputChanges: [
+                        'dist/**'
                     ]
                 }
             },

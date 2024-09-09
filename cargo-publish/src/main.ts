@@ -65,7 +65,7 @@ const cratesIoHeaders = {
 const executor: Executor = async (context, userOptions) => {
 
     const options = await optionsSchema.parseAsync(userOptions)
-    const env = await envSchema.parseAsync(process.env)
+    await envSchema.parseAsync(process.env)
     const manifestPath = join(context.project.root, 'Cargo.toml')
     const manifest = await cargoSchema.parseAsync(toml.parse(await readFile(manifestPath, 'utf-8')))
 
@@ -184,9 +184,12 @@ const executor: Executor = async (context, userOptions) => {
         [
             'publish',
             '--token',
-            env['CARGO_TOKEN']
+            '$CARGO_TOKEN'
         ],
-        { cwd: context.project.root }
+        { 
+            cwd: context.project.root,
+            shell: true
+        }
     )
 
     context.logger.info(`${manifest.package.name} was published, waiting for package to be available...`)

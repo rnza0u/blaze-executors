@@ -4,12 +4,13 @@ import { z } from 'zod'
 
 const optionsSchema = z.object({
     pushRemote: z.string().min(1).optional(),
-    tags: z.array(z.string().min(1)).transform(a => new Set(a))
+    tags: z.array(z.string().min(1)).transform(a => new Set(a)),
+    branch: z.string().min(1).default('master')
 })
 
 const executor: Executor = async (context, options) => {
 
-    const { tags, pushRemote } = await optionsSchema.parseAsync(options)
+    const { tags, pushRemote, branch } = await optionsSchema.parseAsync(options)
 
     if (tags.size === 0) {
         context.logger.warn('no tags were provided')
@@ -57,7 +58,7 @@ const executor: Executor = async (context, options) => {
     context.logger.info(`pushing changes to remote`)
     await shell(
         'git',
-        ['push', '--set-upstream'],
+        ['push', '--set-upstream', 'origin', branch],
         {
             cwd: context.workspace.root
         }

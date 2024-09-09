@@ -141,6 +141,7 @@ const executor: Executor = async (context, userOptions) => {
                     'cargo',
                     [
                         'add',
+                        ...(typeof addFlag === 'string' ? [addFlag] : []),
                         '--path',
                         path
                     ],

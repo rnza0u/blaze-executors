@@ -211,7 +211,7 @@ const executor: Executor = async (context, userOptions) => {
         }
     )
 
-    context.logger.info(`${manifest.package.name} was published, waiting for package to be available...`)
+    context.logger.info(`${manifest.package.name} was published in version ${options.releaseVersion}, waiting for package to be available...`)
 
     while (!(await versionExists(manifest.package.name, options.releaseVersion)))
         await wait(60_000)

@@ -9,6 +9,7 @@
             'docker-logout',
             'node-common',
             'npm-publish',
+            'pnpm-publish',
             'package-binaries',
             'push-tags'
         ]
